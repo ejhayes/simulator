@@ -22,7 +22,7 @@ class GoogleMaps:
 	def getDirections(self, pointA, pointB):
 		"""Gets directions between two points"""
 		try:
-			response = json.load(urllib.urlopen(GoogleMaps.directionsAPI % (pointA + pointB)))
+			response = json.load(urllib.urlopen(GoogleMaps.directionsAPI % (pointA[:2] + pointB[:2])))
 			if( response['status'] != u'OK' ): raise Exception('Problem occured!')
 			
 			response = response['routes'][0]['legs'][0]
@@ -31,16 +31,17 @@ class GoogleMaps:
 			# Now return the useful info to us
 			return {
 						'duration': response['duration']['value'], 
-						'from': response['start_address'],
-						'to': response['end_address'],
-						'distance': response['distance']['value']
+						'fromAddress': response['start_address'],
+						'toAddress': response['end_address'],
+						'distance': response['distance']['value'],
+						'toPoint': pointB
 					}
 			
 		except Exception as e:
-			print e.reason
+			print e
 			
 		except urllib.error.URLError as e:
-			print e.reason
+			print e
 		
 
 

@@ -25,9 +25,25 @@ Additional requirements:
 
 import sys
 import os
+import math
+import random
+from person import *
+
+class clock:
+    """The simulation clock"""
+
+    def __init__(self, startTime=0):
+        self.time = startTime
+        
+    def up(self, quantity=1):
+        """Increment the clock"""
+        self.time += quantity
+        
+    def getTime(self):
+        return self.time
 
 def PoissonGenerator(l):
-	"""Returns a random poisson distributed number for a given lambda value"""
+    """Returns a random poisson distributed number for a given lambda value"""
     l = math.exp(-l)
     k = 0
     p = 1.0
@@ -55,7 +71,6 @@ def SanFranciscoPointGenerator():
 
 def main():
 	"""Runs the simulation"""
-	random.seed()
 
 	# setup our various waiting queues
 	customers = [] # holds a queue of waiting customers
@@ -63,6 +78,17 @@ def main():
 	driving = [] # holds drivers that are driving people (driver, customer)
 	results = [] # holds the results of each completed drive (wait time, trip time, clientRating, driverRating, fare)
 
+	# initialize drivers and customer generator
+	random.seed()
+	sf = SanFranciscoPointGenerator()
+	c=clock()
+	p=person(c,sf.next())
+	print p.calculateRouteFromItinerary([sf.next() for i in range(5)])
+	
+	# simulation loop
+	# 1) process new customers from generator
+	# 2) process completed rides, add driver back to queue--exit if condition arises
+	# 3) assign rides if possible
 	
 
 if __name__ == '__main__':
