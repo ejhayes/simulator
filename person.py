@@ -19,7 +19,11 @@ class person:
     worldMap = GoogleMaps()
     
     def __init__(self, simulationClock, location):
+        # record keeping
         self.simulationClock, self.requestTime, self.location, self.busyUntil = simulationClock, simulationClock.getTime(), location, 0
+    
+        # personal stats
+        self.stats = None
     
     def isBusy(self):
         """Is this person busy?"""
@@ -72,13 +76,64 @@ class person:
         # where we are is part of the itinerary
         itinerary.insert(0, self.location + (False,))
         
-        # calculate the route
+        # returns the scheduled itinerary
         return reduce(self.calculateRoute, itinerary)
+        
+    def calculateRouteStats(self, route):
+        """
+        Returns a dictionary with the following information:
+        - billableMiles
+        - billableMinutes
+        - nonBillableMiles
+        - nonBillableMinutes
+        """
+        print route    
+        ret = {}
+        ret['billableMiles'] = float(sum([i['distance'] for i in route if i['billable'] is True]))/1600
+        ret['billableMinutes'] = float(sum([i['duration'] for i in route if i['billable'] is True]))/60
+        ret['nonBillableMiles'] = float(sum([i['distance'] for i in route if i['billable'] is False]))/1600
+        ret['nonBillableMinutes'] = float(sum([i['duration'] for i in route if i['billable'] is False]))/60
+        ret['totalMiles'] = float(sum([i['distance'] for i in route]))/1600
+        ret['totalMinutes'] = float(sum([i['duration'] for i in route]))/60
+        
+        return ret
+        
+    def setRoute(self, itinerary):
+        """
+        Shortcut to calculate a route, determine the stats, set internal settings, and get busy!
+        """
+        stats = self.calculateRouteStats(self.calculateRouteFromItinerary(itinerary))
+        self.setBusy(stats['totalMinutes'])
+        if self.stats is None:
+            # stats haven't been set yet
+            self.stats = stats
+        else:
+            # update the dictionary with the new stats
+            self.stats = dict(zip(stats.keys(),map(sum,zip(a.values(),b.values()))))
             
+    def getStats(self):
+        return self.stats
+        
     
 class driver(person):
-    pass
+    """
+    Drivers do all the driving.
+    """
+    def __init__(self, simulationClock, location, initialFare=2.85, initialDistance=0.2, farePerMile=2.25):
+        self.initialFare, self.initialDistance, self.farePerMile = initialFare, initialDistance, farePerMile
+        
+        super.init(simulationClock, location)
 
+    def calculateFare(self, distance):
+        if distance > self.initialDistance
+            rate = 0.0
+            distance -= self.initialDistance
+            rate += self.initialFare
+            rate += distance * self.farePerMile
+            return rate
+        else:
+            return self.initialFare
+        
 
 class customer(person):
 		

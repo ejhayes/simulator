@@ -66,8 +66,8 @@ def SanFranciscoPointGenerator():
 	longitudeSouth = 37.7034
 	
 	while(True):
-		yield (((longitudeNorth - longitudeSouth) * random.random()) + longitudeSouth, \
-		((latitudeEast - latitudeWest) * random.random()) + latitudeWest)
+		yield (((longitudeNorth - longitudeSouth) * random.uniform(0,1)) + longitudeSouth, \
+		((latitudeEast - latitudeWest) * random.uniform(0,1)) + latitudeWest)
 
 def main():
 	"""Runs the simulation"""
@@ -83,7 +83,8 @@ def main():
 	sf = SanFranciscoPointGenerator()
 	c=clock()
 	p=person(c,sf.next())
-	print p.calculateRouteFromItinerary([sf.next() for i in range(5)])
+	p.setRoute([sf.next() + (True,), sf.next() + (False,)])
+	print p.getStats()
 	
 	# simulation loop
 	# 1) process new customers from generator
