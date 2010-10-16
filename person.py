@@ -40,7 +40,6 @@ class person:
         """
         Calculates a leg of a given trip
         """
-        lat, lng, billable = range(3)
 
         if type(currentRoute) is not list:
             # first iteration
@@ -48,8 +47,6 @@ class person:
         else:
             currentRoute.append(person.worldMap.getDirections(currentRoute[-1]['toPoint'],nextPoint))
             
-        # add the billing details (False by default)
-        currentRoute[-1].update({'billable': nextPoint[billable] if len(nextPoint) is 3 else False})
         return currentRoute
 
     
@@ -89,12 +86,8 @@ class person:
         """
         print route    
         ret = {}
-        ret['billableMiles'] = float(sum([i['distance'] for i in route if i['billable'] is True]))/1600
-        ret['billableMinutes'] = float(sum([i['duration'] for i in route if i['billable'] is True]))/60
-        ret['nonBillableMiles'] = float(sum([i['distance'] for i in route if i['billable'] is False]))/1600
-        ret['nonBillableMinutes'] = float(sum([i['duration'] for i in route if i['billable'] is False]))/60
-        ret['totalMiles'] = float(sum([i['distance'] for i in route]))/1600
-        ret['totalMinutes'] = float(sum([i['duration'] for i in route]))/60
+        ret['totalMiles'] = GoogleMaps.toMiles(sum([i['distance'] for i in route]))
+        ret['totalMinutes'] = GoogleMaps.toMinutes(sum([i['duration'] for i in route]))
         
         return ret
         
@@ -109,7 +102,10 @@ class person:
             self.stats = stats
         else:
             # update the dictionary with the new stats
-            self.stats = dict(zip(stats.keys(),map(sum,zip(a.values(),b.values()))))
+            self.stats = dict(zip(stats.keys(),map(sum,zip(self.stats.values(),stats.values()))))
+            
+        # end the call by returning route stats
+        return stats
             
     def getStats(self):
         return self.stats
@@ -117,15 +113,28 @@ class person:
     
 class driver(person):
     """
-    Drivers do all the driving.
+    Drivers do all the driving.  Default driver configuration values are based on San Francisco average taxi costs
     """
+    
+    counter = 0
+    
     def __init__(self, simulationClock, location, initialFare=2.85, initialDistance=0.2, farePerMile=2.25):
         self.initialFare, self.initialDistance, self.farePerMile = initialFare, initialDistance, farePerMile
         
-        super.init(simulationClock, location)
+        # Give the driver a name
+        self.name = driver.counter
+        driver.counter += 1
+        
+        # initialize our super class (old style)
+        person.__init__(self,simulationClock,location)
+
+    def getName(self):
+        """Returns sample driver name"""
+        return 'Driver ' + str(self.name)
+        
 
     def calculateFare(self, distance):
-        if distance > self.initialDistance
+        if distance > self.initialDistance:
             rate = 0.0
             distance -= self.initialDistance
             rate += self.initialFare
@@ -133,6 +142,36 @@ class driver(person):
             return rate
         else:
             return self.initialFare
+            
+    def calculateRouteStats(self, route):
+        ret = person.calculateRouteStats(self,route)
+        
+        # calculate the driver stats
+        ret['billableMiles'] = GoogleMaps.toMiles(sum([i['distance'] for i in route if i['fare'] > 0]))
+        ret['billableMinutes'] = GoogleMaps.toMinutes(sum([i['duration'] for i in route if i['fare'] > 0]))
+        ret['nonBillableMiles'] = GoogleMaps.toMiles(sum([i['distance'] for i in route if i['fare'] == 0]))
+        ret['nonBillableMinutes'] = GoogleMaps.toMinutes(sum([i['duration'] for i in route if i['fare'] == 0]))
+        ret['totalFare'] = sum(i['fare'] for i in route)
+            
+        return ret
+    
+    def calculateRoute(self, currentRoute, nextPoint):
+        """
+        Calculates a leg of a given trip
+        """
+        # positional args of nextPoint
+        lat, lng, billable = range(3)
+        
+        currentRoute = person.calculateRoute(self, currentRoute, nextPoint)
+
+        # add the fare
+        currentRoute[-1].update({'fare': self.calculateFare(GoogleMaps.toMiles(currentRoute[-1]['distance'])) if nextPoint[billable] is True else 0})
+        return currentRoute    
+            
+    def finishRide(self):
+        """
+        The ride is finished.  Do some processing!
+        """
         
 
 class customer(person):

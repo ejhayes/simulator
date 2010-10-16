@@ -82,10 +82,11 @@ def main():
 	random.seed()
 	sf = SanFranciscoPointGenerator()
 	c=clock()
-	p=person(c,sf.next())
+	p=driver(c,sf.next())
 	p.setRoute([sf.next() + (True,), sf.next() + (False,)])
 	print p.getStats()
-	
+	print p.calculateFare(p.getStats()['billableMiles'])
+	print p.getName()
 	# simulation loop
 	# 1) process new customers from generator
 	# 2) process completed rides, add driver back to queue--exit if condition arises
