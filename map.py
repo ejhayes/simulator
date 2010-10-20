@@ -31,7 +31,8 @@ class GoogleMaps:
 		"""Gets directions between two points"""
 		try:
 			response = json.load(urllib.urlopen(GoogleMaps.directionsAPI % (pointA[:2] + pointB[:2])))
-			if( response['status'] != u'OK' ): raise Exception('Problem occured!')
+			if( response['status'] != u'OK' ): 
+			    raise Exception(response['status'])
 			
 			response = response['routes'][0]['legs'][0]
 			

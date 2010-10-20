@@ -27,7 +27,7 @@ import sys
 import os
 import math
 import random
-from person import *
+from cab import *
 from map import GoogleMaps
 
 class clock:
@@ -71,7 +71,7 @@ def SanFranciscoPointGenerator():
         ((latitudeEast - latitudeWest) * random.uniform(0,1)) + latitudeWest)
 
 
-def main():
+def simulation(drivers=5,hourlyCustomers=13,simulationDuration=60):
     """Runs the simulation"""
 
     # setup our various waiting queues
@@ -86,11 +86,11 @@ def main():
     # initialize drivers and customer generator
     driving = cab(simulationClock) # holds drivers that are driving people (driver, customer)
     
-    drivers = [{'start':sf.next()} for i in range(5)]
-    customerGenerator = PoissonGenerator(float(50)/60)
+    drivers = [{'start':sf.next()} for i in range(drivers)]
+    customerGenerator = PoissonGenerator(float(hourlyCustomers)/60)
     
     # simulation loop
-    while(simulationClock.getTime() <= 60):
+    while(simulationClock.getTime() <= simulationDuration):
         # 1) process any new customers 
         [customers.append({'request':simulationClock.getTime(),'start':sf.next(),'end':sf.next()}) for i in range(customerGenerator.next())]
         
@@ -111,10 +111,18 @@ def main():
         simulationClock.up()
     
     # output the results
-    print 'Customers %d' % len(customers)
-    print 'Drivers %d' % len(drivers)
     print driving.getStats()
     
 if __name__ == '__main__':
-    main()
+    # If we run this bad boy directly we'll prob want to pass
+    # in our own parameters
+    import argparse
+
+    parser = argparse.ArgumentParser(description='Performs a simulation of cabs in San Francisco.')
+    parser.add_argument('-d','--drivers', dest='drivers', default=5, help='drivers on duty 5)')
+    parser.add_argument('-c','--customers', dest='customers', default=13, help='hourly customers (default: 13)')
+    parser.add_argument('-l','--length', dest='simulationDuration', default=5, help='duration of simulation (default: 60)')
+    options=parser.parse_args()
+
+    simulation(options.drivers,options.customers,options.simulationDuration)
 

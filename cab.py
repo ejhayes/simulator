@@ -66,7 +66,7 @@ class cab:
         
         # put the stats in
         # wait time, trip time, ratings, fare
-        print 'time is %s, %d served, %d riding' % (self.simulationClock.getTime(),len(completedRides),len(self.queue))
+        # print 'time is %s, %d served, %d riding' % (self.simulationClock.getTime(),len(completedRides),len(self.queue))
         for i in completedRides:
             self.stats.append({
                 'tripTime':i['tripTime'],
@@ -82,13 +82,12 @@ class cab:
     def getStats(self):
         """Returns the collected stats"""
         ret = {}
-        
-        #return dict(zip(self.stats[1].keys(),[sum(j)/len(self.stats) for j in [i.values() for i in self.stats]]))
-        ret['tripTime'] = sum([i['tripTime'] for i in self.stats])/len(self.stats)
-        ret['waitTime'] = sum([i['waitTime'] for i in self.stats])/len(self.stats)
-        ret['driverRating'] = sum([i['driverRating'] for i in self.stats])/len(self.stats)
-        ret['customerRating'] = sum([i['customerRating'] for i in self.stats])/len(self.stats)
-        ret['fare'] = sum([i['fare'] for i in self.stats])/len(self.stats)
+        if len(self.stats) > 0:
+            ret['tripTime'] = sum([i['tripTime'] for i in self.stats])/len(self.stats)
+            ret['waitTime'] = sum([i['waitTime'] for i in self.stats])/len(self.stats)
+            ret['driverRating'] = sum([i['driverRating'] for i in self.stats])/len(self.stats)
+            ret['customerRating'] = sum([i['customerRating'] for i in self.stats])/len(self.stats)
+            ret['fare'] = sum([i['fare'] for i in self.stats])/len(self.stats)
         
         return ret
         
