@@ -26,10 +26,8 @@ class GoogleMaps:
 	    """Converts API duration to minutes"""
 	    return float(duration)/60
 	
-	def __init__(self):
-		pass
-		
-	def getDirections(self, pointA, pointB):
+	@staticmethod	
+	def getDirections(pointA, pointB):
 		"""Gets directions between two points"""
 		try:
 			response = json.load(urllib.urlopen(GoogleMaps.directionsAPI % (pointA[:2] + pointB[:2])))
