@@ -58,41 +58,70 @@ def PoissonGenerator(l):
             p = 1.0
 
 def SanFranciscoPointGenerator():
-	"""Generates random latitude/longitude point sets of San Francisco"""
-	
-	latitudeEast = -122.527
-	latitudeWest = -122.3482
-	longitudeNorth = 37.812
-	longitudeSouth = 37.7034
-	
-	while(True):
-		yield (((longitudeNorth - longitudeSouth) * random.uniform(0,1)) + longitudeSouth, \
-		((latitudeEast - latitudeWest) * random.uniform(0,1)) + latitudeWest)
+    """Generates random latitude/longitude point sets of San Francisco"""
+    
+    latitudeEast = -122.527
+    latitudeWest = -122.3482
+    longitudeNorth = 37.812
+    longitudeSouth = 37.7034
+    
+    while(True):
+        yield (((longitudeNorth - longitudeSouth) * random.uniform(0,1)) + longitudeSouth, \
+        ((latitudeEast - latitudeWest) * random.uniform(0,1)) + latitudeWest)
 
 def main():
-	"""Runs the simulation"""
+    """Runs the simulation"""
 
-	# setup our various waiting queues
-	customers = [] # holds a queue of waiting customers
-	drivers = [] # holds a queue of available drivers
-	driving = [] # holds drivers that are driving people (driver, customer)
-	results = [] # holds the results of each completed drive (wait time, trip time, clientRating, driverRating, fare)
+    # setup our various waiting queues
+    customers = [] # holds a queue of waiting customers
+    drivers = [] # holds a queue of available drivers
+    driving = cab() # holds drivers that are driving people (driver, customer)
+    results = [] # holds the results of each completed drive (wait time, trip time, clientRating, driverRating, fare)
 
-	# initialize drivers and customer generator
-	random.seed()
-	sf = SanFranciscoPointGenerator()
-	c=clock()
-	p=driver(c,sf.next())
-	p.setRoute([sf.next() + (True,), sf.next() + (False,)])
-	print p.getStats()
-	print p.calculateFare(p.getStats()['billableMiles'])
-	print p.getName()
-	# simulation loop
-	# 1) process new customers from generator
-	# 2) process completed rides, add driver back to queue--exit if condition arises
-	# 3) assign rides if possible
-	
+    # initialize simulation variables
+    random.seed()
+    sf = SanFranciscoPointGenerator()
+    simulationClock=clock()
+    d,c = range(2)
+    
+    # initialize drivers and customer generator
+    [drivers.append(driver(simulationClock,sf.next()))]
+    customerGenerator = PoissonGenerator(float(13)/60)
+    
+    # TEMP
+    # p.setRoute([sf.next() + (True,), sf.next() + (False,)])
+    # print p.getStats()
+    # print p.calculateFare(p.getStats()['billableMiles'])
+    # print p.getName()
+    
+    # simulation loop
+    while(simulationClock.getTime() <= 8):
+        # 1) process any new customers
+        [customers.append(customer(simulationClock,sf.next())) for i in range(customerGenerator.next())]
+        
+        # 2) process completed rides, add driver back to queue
+        for i in driving.pop():
+            # put the drivers back
+            drivers.append(i[d])
+            
+            # calculate the results of the customers
+            results.append(i[c].getStats())
+        
+        # 3) assign rides if possible
+        [driving.push(i,sf.next()) for i in zip(drivers,customers)]
+
+        # increment the clock
+        simulationClock.up()
+
+    # append driver stats now that the simulation is over
+    [results.append(i.getStats()) for i in drivers]
+    
+    # output the results
+    print customers
+    print drivers
+    print driving
+    print results
 
 if __name__ == '__main__':
-	main()
+    main()
 

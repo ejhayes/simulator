@@ -34,7 +34,14 @@ class person:
             return False
         else:
             self.busyUntil = self.simulationClock.getTime() + duration
-            return True        
+            return True  
+            
+    def getLocation(self):
+        """Returns the person current location"""
+        return self.location
+        
+    def setLocation(self,location):
+        self.location = location
     
     def calculateRoute(self, currentRoute, nextPoint):
         """
@@ -97,6 +104,8 @@ class person:
         """
         stats = self.calculateRouteStats(self.calculateRouteFromItinerary(itinerary))
         self.setBusy(stats['totalMinutes'])
+        self.setLocation(itinerary[-1])
+        
         if self.stats is None:
             # stats haven't been set yet
             self.stats = stats
@@ -159,6 +168,9 @@ class driver(person):
         """
         Calculates a leg of a given trip
         """
+        if currentRoute is None:
+            return []
+            
         # positional args of nextPoint
         lat, lng, billable = range(3)
         
@@ -167,11 +179,6 @@ class driver(person):
         # add the fare
         currentRoute[-1].update({'fare': self.calculateFare(GoogleMaps.toMiles(currentRoute[-1]['distance'])) if nextPoint[billable] is True else 0})
         return currentRoute    
-            
-    def finishRide(self):
-        """
-        The ride is finished.  Do some processing!
-        """
         
 
 class customer(person):
@@ -195,6 +202,36 @@ class customer(person):
 			tripDistance: self.route['distance']
 		
 		}
+
+class cab:
+    """
+    The cab class
+    """
+    
+    def __init__(self):
+        self.queue = []
+        
+    def push(self,cabSet,toLocation):
+        """Adds a driver customer set"""
+        
+        d,c = range(2)
+        
+        # Prepare the itinerary for the driver
+        stats = cabSet[d].setRoute([cabSet[c],toLocation + (True,)])
+            
+        self.queue.append(cabSet + (stats,))
+        
+    def pop(self):
+        """Returns customers and drivers to their respective queues"""
+        d,c = range(2)
+        
+        # Continue holding the people who are busy
+        self.queue = [i for i in self.queue if i[d].isBusy()]
+        
+        # Return the people who are not busy
+        return [i for i in self.queue if i[d].isBusy() is False]
+        
+        
 
 class customerTests(unittest.TestCase):
 	def setUp(self):
