@@ -119,7 +119,7 @@ if __name__ == '__main__':
     import argparse
 
     parser = argparse.ArgumentParser(description='Performs a simulation of cabs in San Francisco.')
-    parser.add_argument('-d','--drivers', dest='drivers', default=5, help='drivers on duty 5)')
+    parser.add_argument('-d','--drivers', dest='drivers', default=5, help='drivers on duty (default: 5)')
     parser.add_argument('-c','--customers', dest='customers', default=13, help='hourly customers (default: 13)')
     parser.add_argument('-l','--length', dest='simulationDuration', default=5, help='duration of simulation (default: 60)')
     options=parser.parse_args()
