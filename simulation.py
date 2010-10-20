@@ -76,7 +76,6 @@ def main():
 
     # setup our various waiting queues
     customers = [] # holds a queue of waiting customers
-    results = [] # holds the results of each completed drive (wait time, trip time, clientRating, driverRating, fare)
 
     # initialize simulation variables
     random.seed()
@@ -88,24 +87,33 @@ def main():
     driving = cab(simulationClock) # holds drivers that are driving people (driver, customer)
     
     drivers = [{'start':sf.next()} for i in range(5)]
-    customerGenerator = PoissonGenerator(float(13)/60)
+    customerGenerator = PoissonGenerator(float(50)/60)
     
     # simulation loop
-    while(simulationClock.getTime() <= 8):
+    while(simulationClock.getTime() <= 60):
         # 1) process any new customers 
         [customers.append({'request':simulationClock.getTime(),'start':sf.next(),'end':sf.next()}) for i in range(customerGenerator.next())]
         
         # 2) process completed rides, add driver back to queue
         [drivers.append(i) for i in driving.pop()]
         
-        # 3) assign rides if possible
-        [driving.push(i) for i in zip(drivers,customers)]
+        # 3) assign rides if possible'
+        for i in drivers:
+            if len(customers) > 0:
+                # assign the driver to a customer
+                driving.push((drivers.pop(),customers.pop()))
+            else:
+                # if there are no customers, break out!
+                break
+        
 
         # 4) increment the clock
         simulationClock.up()
     
     # output the results
-    print diving.getStats()
+    print 'Customers %d' % len(customers)
+    print 'Drivers %d' % len(drivers)
+    print driving.getStats()
     
 if __name__ == '__main__':
     main()
